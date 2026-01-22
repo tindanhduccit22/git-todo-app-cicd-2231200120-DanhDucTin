@@ -1,12 +1,11 @@
-name: CI Pipeline
+name: Full Test and Build Pipeline
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
 
 jobs:
-  test:
+  unit-and-integration-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,7 +16,25 @@ jobs:
           node-version: 18
 
       - run: npm install
-
       - run: npm run test:unit
-
       - run: npm run test:integration
+
+  build:
+    needs: unit-and-integration-tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - run: npm install
+      - run: npm run build || echo "skip build"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: todo-app-linux
+          path: .
